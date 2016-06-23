@@ -1,8 +1,8 @@
 from django.conf.urls import url
 
-from .views import SingleCardView, CardListView
+from .views import CardList
 
 urlpatterns = [
-    url(r'^add/$', SingleCardView.as_view(), name='detail'),
-    url(r'^$', CardListView.as_view(), name='index'),
+    url(r'^cards/$', CardList.as_view(), name='card-list'),
+    # url(r'^$', CardListView.as_view(), name='index'),
 ]

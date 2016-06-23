@@ -1,48 +1,49 @@
 from __future__ import unicode_literals
 
-from django.contrib.auth.base_user import AbstractBaseUser
-from django.contrib.auth.models import User, UserManager
-from django.core.validators import RegexValidator
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+from django.contrib.auth.models import AbstractUser, UserManager
 
 
-class CustomUser(User):
+# class CustomUserManager(UserManager):
+#     def _create_user(self, username, email=None, password=None, role='U', **extra_fields):
+#         print('Here')
+#         print(role)
+#         print(extra_fields)
+#         print('there')
+#         return super(CustomUserManager, self)._create_user(username, email, password, **extra_fields)
+from card_project import settings
+
+
+class User(AbstractUser):
     class Meta:
-        verbose_name = 'Custom User'
-        verbose_name_plural = 'Custom User'
-    REQUIRED_FIELDS = ['email', 'role']
-
+        db_table = 'auth_user'
+    REQUIRED_FIELDS = ['email', 'password', 'role', 'userpic']
     COMPANY = 'C'
     USER = 'U'
-    roles = (('C', 'Company'), ('U', 'User'))
-    role = models.CharField(max_length=2,
-                            choices=roles,
-                            default='U')
-    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$',
-                                 message="Phone number must be entered in the format: '+999999999'. \
-                                         Up to 15 digits allowed.")
-    phone_number = models.CharField(validators=[phone_regex], blank=True, max_length=15)
-    userpic = models.ImageField(upload_to='userpic/', blank=True, null=True)
-    objects = UserManager()
+    ROLES = [
+        ('U', 'User'),
+        ('C', 'Company')
+    ]
+    userpic = models.ImageField(upload_to='userpics/', blank=True, null=True)
+    role = models.CharField(max_length=4, choices=ROLES, default=USER)
 
-
-@receiver(post_save, sender=User)
-def ensure_profile_exists(sender, **kwargs):
-    if kwargs.get('created', False):
-        CustomUser.objects.get_or_create(user=kwargs.get('instance'))
-
-post_save.connect(create_custom_user, User)
+    def __str__(self):
+        return str(self.username)
 
 
 class CardType(models.Model):
     title = models.CharField(max_length=30)
 
+    def __str__(self):
+        return str(self.title)
+
 
 class Card(models.Model):
     number = models.CharField(max_length=30)
-    user = models.ForeignKey(CustomUser, limit_choices_to={'role': CustomUser.USER}, related_name='user')
-    company = models.ForeignKey(CustomUser, limit_choices_to={'role': CustomUser.COMPANY}, related_name='company')
+    company = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='company')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='user')
     type = models.ForeignKey(CardType)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return str(self.number) + str(self.type_id) + str(self.user_id)
