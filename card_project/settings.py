@@ -115,8 +115,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 STATIC_URL = '/static/'
 
 
-MEDIA_ROOT = "/var/www/conf_proj/media/"
-MEDIA_URL = "http://127.0.0.1:8080/media/"
+MEDIA_ROOT = "/var/www/card_project/media/"
+MEDIA_URL = "/media/"
 
 ACCOUNT_ACTIVATION_DAYS = 7
 
