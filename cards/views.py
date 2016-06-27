@@ -1,13 +1,13 @@
-from rest_framework import viewsets, generics
+from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from django.http import Http404
 
+from users.models import User
 from cards.models import Card
-from cards.serializers import CardSerializer, UserSerializer
-from .permissions import *
+from cards.serializers import CardSerializer
+from cards.permissions import UserOnlyPostPermission, CardAccessPermission
 
 
 class CardList(APIView):
@@ -40,7 +40,7 @@ class CardDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated, CardAccessPermission)
 
     def put(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
+        partial = kwargs.get('partial', False)
         instance = self.get_object()
         serializer = CardSerializer(
             instance,

@@ -1,6 +1,6 @@
 from rest_framework import permissions
 
-from cards.models import User
+from users.models import User
 
 
 class CardAccessPermission(permissions.BasePermission):

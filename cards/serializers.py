@@ -1,13 +1,8 @@
-from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from cards.models import Card, CardType, User
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = get_user_model()
-        fields = ('username', 'email', 'role', 'userpic', 'phone')
+from users.models import User
+from users.serializers import UserSerializer
+from cards.models import Card, CardType
 
 
 class TypeSerializer(serializers.ModelSerializer):
@@ -26,8 +21,8 @@ class CardSerializer(serializers.ModelSerializer):
         source='company',
         write_only=True
     )
-    number = serializers.CharField()
-    type = serializers.PrimaryKeyRelatedField(
+    card_code = serializers.CharField()
+    card_type = serializers.PrimaryKeyRelatedField(
         queryset=CardType.objects.all(),
     )
 
@@ -36,49 +31,41 @@ class CardSerializer(serializers.ModelSerializer):
         depth = 1
 
     def create(self, validated_data):
-        print(validated_data)
         return Card.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.number = validated_data.get('number', instance.number)
-        print('updated')
+        instance.card_code = validated_data.get('card_code', instance.card_code)
         instance.save()
         return instance
 
     def validate(self, data):
         if self.context['method'] == 'POST':
-            return self.post_validation(data)
+            return self.validate_post_request(data)
         else:
-            return self.put_validation(data)
+            return self.validate_put_request(data)
 
-    def post_validation(self, data):
-        company_id = int(self.initial_data['company_id'])
-        type_id = int(self.initial_data['type'])
-        data['user_id'] = self.context["user"].id
+    def validate_post_request(self, data):
+        company_id = int(self.initial_data.get('company_id'))
+        card_type_id = int(self.initial_data.get('card_type'))
+        data['user_id'] = self.context.get('user').id
 
         try:
-            data['company'] = User.objects.all().filter(pk=company_id, role='C').first()
-        except:
+            data['company'] = User.objects.get(pk=company_id, role=User.COMPANY)
+        except User.DoesNotExist:
             raise serializers.ValidationError("Company does not exist")
 
         try:
-            data['type'] = CardType.objects.get(pk=type_id)
-        except:
-            raise serializers.ValidationError("Type does not exist")
-        print("---------------------------------")
-        if (Card.objects.all().filter(
-                company__id=company_id,
-                number=data['number'])
-            .first()):
-            raise serializers.ValidationError("Card already exists")
-        Card.objects.filter(
-            company__id=company_id,
-            number=data['number']).first()
-        print("---------------------------------")
+            data['card_type'] = CardType.objects.get(pk=card_type_id)
+        except Card.DoesNotExist:
+            raise serializers.ValidationError("Card type does not exist")
 
+        if (Card.objects.filter(
+                company__id=company_id,
+                card_code=data.get('card_code')).count() > 0):
+            raise serializers.ValidationError("Card already exists")
         return data
 
-    def put_validation(self, data):
+    def validate_put_request(self, data):
         if data.get('user'):
             raise serializers.ValidationError("Cannot modify owner")
         return data

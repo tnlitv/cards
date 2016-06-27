@@ -1,7 +1,14 @@
 <component name="ProjectDictionaryState">
   <dictionary name="tlitvinenko">
     <words>
+      <w>authtoken</w>
+      <w>backends</w>
+      <w>clickjacking</w>
+      <w>csrf</w>
+      <w>djoser</w>
       <w>userpic</w>
+      <w>userpics</w>
+      <w>wsgi</w>
     </words>
   </dictionary>
 </component>

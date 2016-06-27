@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'cards',
+    'users'
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -53,10 +54,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'card_project.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/1.9/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -68,9 +65,6 @@ DATABASES = {
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -127,4 +121,4 @@ EMAIL_HOST_PASSWORD = '###'
 EMAIL_PORT = 587
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-AUTH_USER_MODEL = 'cards.User'
+AUTH_USER_MODEL = 'users.User'
