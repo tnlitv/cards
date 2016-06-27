@@ -20,5 +20,8 @@ class Card(models.Model):
     card_type = models.ForeignKey(CardType)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ('card_code', 'company',)
+
     def __str__(self):
         return str(self.card_code) + str(self.type_id) + str(self.user_id)

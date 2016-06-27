@@ -1,4 +1,5 @@
 from rest_framework import generics
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -10,24 +11,20 @@ from cards.serializers import CardSerializer
 from cards.permissions import UserOnlyPostPermission, CardAccessPermission
 
 
-class CardList(APIView):
+class CardList(ListCreateAPIView):
     permission_classes = (IsAuthenticated, UserOnlyPostPermission)
+    serializer_class = CardSerializer
 
-    def get(self, request):
-        if request.user.role == User.USER:
-            cards = Card.objects.all().filter(user__id=request.user.id)
+    def get_queryset(self):
+        if self.request.user.role == User.USER:
+            return Card.objects.all().filter(user__id=self.request.user.id)
         else:
-            cards = Card.objects.all().filter(company__id=request.user.id)
-        serializer = CardSerializer(cards, many=True)
-        return Response(serializer.data)
+            return Card.objects.all().filter(company__id=self.request.user.id)
 
-    def post(self, request):
-        serializer = CardSerializer(
-            data=request.data,
-            context={
-                'method': request.method,
-                'user': request.user
-            })
+    def create(self, request, *args, **kwargs):
+        new_card = Card()
+        new_card.user = request.user
+        serializer = CardSerializer(instance=new_card, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -38,18 +35,3 @@ class CardDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Card.objects.all()
     serializer_class = CardSerializer
     permission_classes = (IsAuthenticated, CardAccessPermission)
-
-    def put(self, request, *args, **kwargs):
-        partial = kwargs.get('partial', False)
-        instance = self.get_object()
-        serializer = CardSerializer(
-            instance,
-            data=request.data,
-            partial=partial,
-            context={
-                'method': request.method,
-                'user': request.user
-            })
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
